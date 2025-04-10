@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Navigation Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" defer></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+         @keyframes fly {
+            0% { transform: translateX(-10vw) translateY(0); opacity: 1; }
+            100% { transform: translateX(110vw) translateY(0); opacity: 1; }
+         }
+
+         @keyframes flyReverse {
+            0% { transform: translateX(110vw) translateY(0) scaleX(-1); opacity: 1; }
+            100% { transform: translateX(-10vw) translateY(0) scaleX(-1); opacity: 1; }
+         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes bubble {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.4; }
+        }
+        
+        .message {
+            display: flex;
+            padding: 12px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            margin-bottom: 12px;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .message-container {
+            display: flex;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        .user-message-container {
+            justify-content: flex-end;
+        }
+        
+        .bot-message-container {
+            justify-content: flex-start;
+        }
+        
+        .user-message {
+            background-color: #3b82f6;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bot-message {
+            background-color: #1e40af;
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .profile-image {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin: 0 8px;
+            border: 2px solid #3b82f6;
+            object-fit: cover;
+        }
+        
+        .suggestion-container {
+            width: 100%;
+            padding: 10px 0;
+        }
+        
+        .suggestion-chip {
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            background-color: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3b82f6;
+        }
+        
+        .airport-selector {
+            position: absolute;
+            top: 4px;
+            right: 10px;
+            z-index: 20;
+        }
+        
+        /* New styles for enhanced airport selector */
+        .airport-select-wrapper {
+            position: relative;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .airport-select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1rem;
+            background-color: rgba(30, 64, 175, 0.6);
+            color: white;
+            border: 2px solid #60a5fa;
+            border-radius: 8px;
+            appearance: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .airport-select:hover {
+            background-color: rgba(37, 99, 235, 0.7);
+            border-color: #93c5fd;
+        }
+        
+        .airport-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        
+        .airport-select-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #60a5fa;
+            transition: all 0.3s ease;
+        }
+        
+        .airport-select-wrapper:hover .airport-select-icon {
+            color: #93c5fd;
+        }
+        
+        .airport-select optgroup {
+            background-color: #1e3a8a;
+            font-weight: bold;
+        }
+        
+        .airport-select option {
+            background-color: #1e40af;
+            padding: 8px;
+        }
+        
+        /* Responsive styles for the airport selector */
+        @media (max-width: 768px) {
+            .airport-select-wrapper {
+                max-width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+        
+        .error-message {
+            background-color: rgba(239, 68, 68, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px auto;
+            text-align: center;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            padding: 12px 16px;
+            background: #1e40af;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            width: fit-content;
+            border-bottom-left-radius: 4px;
+            animation: fadeIn 0.3s ease-out forwards;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            margin: 0 2px;
+            background-color: #93c5fd;
+            display: block;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        /* Star constellation styling */
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        .cloud {
+            position: absolute;
+            opacity: 0.4;
+            animation: float 8s infinite ease-in-out;
+        }
+        
+        /* Message content styling */
+        .message-content {
+            line-height: 1.5;
+        }
+        
+        .message-content p {
+            margin-bottom: 0.75rem;
+        }
+        
+        .message-content ul, .message-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .message-content ul {
+            list-style-type: disc;
+        }
+        
+        .message-content ol {
+            list-style-type: decimal;
+        }
+        
+        .message-content h1, .message-content h2, .message-content h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .message-content h1 {
+            font-size: 1.5rem;
+        }
+        
+        .message-content h2 {
+            font-size: 1.25rem;
+        }
+        
+        .message-content h3 {
+            font-size: 1.1rem;
+        }
+        
+        .message-content a {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+        
+        .message-content code {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .message {
+                max-width: 90%;
+            }
+            
+            .profile-image {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        @keyframes float {
+                0%, 100% { transform: translateY(0) translateX(0); }
+                50% { transform: translateY(-10px) translateX(5px); }
+            }
+            @keyframes shooting {
+                0% { transform: translateX(0) translateY(0) scale(1); opacity: 0; }
+                10% { opacity: 1; }
+                70% { transform: translateX(300px) translateY(150px) scale(0.5); opacity: 0.5; }
+                100% { transform: translateX(500px) translateY(250px) scale(0); opacity: 0; }
+            }
+            @keyframes twinkle {
+                0%, 100% { opacity: 0.2; }
+                50% { opacity: 1; }
+            }
+            @keyframes floatUp {
+                0% { transform: translateY(0) scale(1); opacity: 0; }
+                10% { opacity: 0.5; }
+                90% { opacity: 0.2; }
+                100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 0.7; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.1); }
+            }
+    
+    #mic-button.recording {
+        background-color: #ef4444; /* Red for active recording */
+        animation: pulse 1.5s infinite;
+    }
+
+    #mic-visualizer {
+        z-index: -1;
+        animation: none;
+    }
+
+    #mic-button.recording #mic-visualizer {
+        opacity: 0.5;
+        animation: pulse 1.5s infinite;
+    }
+
+    /* Language toggle styles */
+    .language-toggle {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: rgba(30, 64, 175, 0.6);
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid #60a5fa;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .language-toggle:hover {
+        background-color: rgba(37, 99, 235, 0.7);
+        border-color: #93c5fd;
+    }
+    
+    .language-toggle-label {
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .language-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    
+    .language-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .language-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(30, 64, 175, 0.8);
+        transition: .4s;
+        border-radius: 24px;
+        border: 1px solid #60a5fa;
+    }
+    
+    .language-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .language-toggle-slider {
+        background-color: #EF4444;
+    }
+    
+    input:checked + .language-toggle-slider:before {
+        transform: translateX(26px);
+    }
+    
+    .language-icon {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    /* Speaker toggle styles */
+    .speaker-toggle {
+        position: absolute;
+        top: 10px;
+        left: 170px; /* Position next to language toggle */
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: rgba(30, 64, 175, 0.6);
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid #60a5fa;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .speaker-toggle:hover {
+        background-color: rgba(37, 99, 235, 0.7);
+        border-color: #93c5fd;
+    }
+    
+    .speaker-toggle-label {
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .speaker-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    
+    .speaker-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .speaker-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(30, 64, 175, 0.8);
+        transition: .4s;
+        border-radius: 24px;
+        border: 1px solid #60a5fa;
+    }
+    
+    .speaker-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .speaker-toggle-slider {
+        background-color: #10B981; /* Green for active speaker */
+    }
+    
+    input:checked + .speaker-toggle-slider:before {
+        transform: translateX(26px);
+    }
+    
+    .speaking-animation {
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+    
+    @keyframes soundwave {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.7; }
+    }
+    
+    .soundwave {
+        display: inline-block;
+        width: 4px;
+        height: 16px;
+        background-color: white;
+        margin: 0 1px;
+        border-radius: 2px;
+    }
+    
+    .soundwave-animation {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 6px;
+    }
+    
+    .soundwave-animation .soundwave:nth-child(1) {
+        animation: soundwave 0.8s infinite;
+        animation-delay: 0s;
+    }
+    
+    .soundwave-animation .soundwave:nth-child(2) {
+        animation: soundwave 0.8s infinite;
+        animation-delay: 0.2s;
+        height: 22px;
+    }
+    
+    .soundwave-animation .soundwave:nth-child(3) {
+        animation: soundwave 0.8s infinite;
+        animation-delay: 0.4s;
+        height: 18px;
+    }
+    
+    .soundwave-animation .soundwave:nth-child(4) {
+        animation: soundwave 0.8s infinite;
+        animation-delay: 0.6s;
+        height: 14px;
+    }
+    </style>
+</head>
+    <body class="relative flex justify-center items-center h-screen bg-gradient-to-br from-sky-900 via-black to-blue-900 text-gray-200 overflow-hidden">
+
+       
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="shooting-star animate-[shooting_5s_linear_infinite] absolute top-10 left-1/4 w-1 h-1 bg-white rounded-full"></div>
+            <div class="shooting-star animate-[shooting_7s_linear_infinite_2s] absolute top-20 left-3/4 w-1 h-1 bg-blue-300 rounded-full"></div>
+            <div class="shooting-star animate-[shooting_6s_linear_infinite_4s] absolute top-1/3 left-1/2 w-1 h-1 bg-amber-100 rounded-full"></div>
+        </div>
+    
+        <div class="cloud absolute top-12 left-20 animate-[float_8s_ease-in-out_infinite]">
+            <i class="fas fa-cloud text-white text-5xl opacity-30"></i>
+        </div>
+        <div class="cloud absolute top-40 right-40 animate-[float_10s_ease-in-out_infinite_3s]">
+            <i class="fas fa-cloud text-white text-6xl opacity-20"></i>
+        </div>
+        <div class="cloud absolute bottom-20 left-40 animate-[float_12s_ease-in-out_infinite_1s]">
+            <i class="fas fa-cloud text-white text-4xl opacity-25"></i>
+        </div>
+    
+        
+        <div class="absolute top-5 left-5 animate-[fly_8s_linear_infinite]">
+            <i class="fas fa-plane text-white text-4xl opacity-80"></i>
+        </div>
+        <div class="absolute top-20 left-10 animate-[fly_12s_linear_infinite_2s]">
+            <i class="fas fa-plane text-white text-3xl opacity-70"></i>
+        </div>
+        <div class="absolute bottom-40 left-5 animate-[flyReverse_10s_linear_infinite]">
+            <i class="fas fa-plane text-white text-3xl opacity-70"></i>
+        </div>
+    
+       
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-1/4 left-1/5 w-1 h-1 bg-white rounded-full animate-[twinkle_3s_ease-in-out_infinite]"></div>
+            <div class="absolute top-1/3 left-3/4 w-1 h-1 bg-blue-300 rounded-full animate-[twinkle_4s_ease-in-out_infinite_1s]"></div>
+            <div class="absolute top-2/3 left-1/4 w-1 h-1 bg-white rounded-full animate-[twinkle_5s_ease-in-out_infinite_2s]"></div>
+            <div class="absolute top-3/4 left-2/3 w-1 h-1 bg-blue-200 rounded-full animate-[twinkle_3s_ease-in-out_infinite]"></div>
+        </div>
+    
+        
+        <div id="gemini-constellation" class="absolute inset-0 pointer-events-none z-0"></div>
+    
+        <!-- Language Toggle Button -->
+        <div class="language-toggle">
+            <span class="language-icon">🇬🇧</span>
+            <label class="language-toggle-switch">
+                <input type="checkbox" id="language-toggle-input">
+                <span class="language-toggle-slider"></span>
+            </label>
+            <span class="language-icon">🇮🇳</span>
+        </div>
+
+        <!-- Speaker Toggle Button -->
+        <div class="speaker-toggle">
+            <i class="fas fa-volume-mute speaker-icon"></i>
+            <label class="speaker-toggle-switch">
+                <input type="checkbox" id="speaker-toggle-input">
+                <span class="speaker-toggle-slider"></span>
+            </label>
+            <i class="fas fa-volume-up speaker-icon"></i>
+            <!-- This div will be shown when speaking is active -->
+            <div class="soundwave-animation hidden" id="speaking-indicator">
+                <div class="soundwave"></div>
+                <div class="soundwave"></div>
+                <div class="soundwave"></div>
+                <div class="soundwave"></div>
+            </div>
+            <!-- Voice introduction notification that appears when speech is enabled -->
+            <div id="voice-intro-notice" class="hidden absolute top-full left-0 mt-2 px-3 py-2 bg-blue-800/80 text-white text-xs rounded-md shadow-lg">
+                Introducing voices...
+            </div>
+        </div>
+        
+        <div class=" w-full max-w-3xl h-[95vh] mt-[100px] mb-[100px] mr-5 ml-5 rounded-2xl backdrop-blur-md bg-white/10 border border-blue-300 shadow-lg relative z-10 flex flex-col overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300">
+    
+           
+            <div class="absolute -inset-1 bg-blue-500/20 rounded-2xl blur-lg opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+    
+           
+            <div class="bg-gradient-to-bl from-sky-800 via-black to-blue-900 text-white p-6 text-center font-bold shadow-md backdrop-blur-sm border-b border-white">
+                <div class="flex justify-center items-center space-x-3">
+                    <div class="text-amber-300 text-3xl animate-[pulse_4s_ease-in-out_infinite]">✦</div>
+                    <div class="flex flex-col">
+                        <h1 class="text-2xl font-bold">Skybot Airport Assistant</h1>
+                        <p class="text-xs text-blue-200 mt-1">Your twin-star guide to airports worldwide</p>
+                    </div>
+                    <div class="text-amber-300 text-3xl animate-[pulse_4s_ease-in-out_infinite_1s]">✦</div>
+                </div>
+    
+                
+                <div class="flex justify-center mt-4">
+                    <div class="relative">
+                        <select id="airport-selector" class="appearance-none bg-blue-800/50 text-white border border-blue-500 rounded-lg px-5 py-2 pr-10 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm hover:bg-blue-700/50 transition-colors">
+                            <option value="">✈️ Select your destination airport</option>
+                            <optgroup label="🌎 International Airports">
+                                <option value="JFK">JFK - John F. Kennedy (New York)</option>
+                                <option value="LAX">LAX - Los Angeles International</option>
+                                <option value="LHR">LHR - Heathrow (London)</option>
+                                <option value="SIN">SIN - Changi (Singapore)</option>
+                                <option value="DXB">DXB - Dubai International</option>
+                                <option value="ORD">ORD - O'Hare (Chicago)</option>
+                                <option value="HND">HND - Haneda (Tokyo)</option>
+                            </optgroup>
+                            <optgroup label="🇮🇳 Indian Airports">
+                                <option value="DEL">DEL - Indira Gandhi (Delhi)</option>
+                                <option value="BOM">BOM - Chhatrapati Shivaji (Mumbai)</option>
+                                <option value="BLR">BLR - Kempegowda (Bangalore)</option>
+                                <option value="MAA">MAA - Chennai International</option>
+                                <option value="CCU">CCU - Netaji Subhas (Kolkata)</option>
+                                <option value="HYD">HYD - Rajiv Gandhi (Hyderabad)</option>
+                                <option value="AMD">AMD - Sardar Vallabhbhai (Ahmedabad)</option>
+                                <option value="COK">COK - Cochin International</option>
+                                <option value="GOI">GOI - Goa International</option>
+                                <option value="GAU">GAU - Lokpriya Gopinath (Guwahati)</option>
+                                <option value="JAI">JAI - Jaipur International</option>
+                                <option value="LKO">LKO - Lucknow International</option>
+                                <option value="IXC">IXC - Chandigarh International</option>
+                            </optgroup>
+                        </select>
+                        <div class="absolute right-3 top-3 text-white pointer-events-none animate-[bounce_2s_infinite]">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Meet My Team button in parallel -->
+                    <button id="meet-team-btn" class="ml-4 px-4 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition backdrop-blur-sm hover:scale-105 transform transition-transform flex items-center space-x-2 border border-blue-400 shadow-md">
+                        <i class="fas fa-users"></i>
+                        <span>Meet My Team</span>
+                    </button>
+                </div>
+            </div>
+    
+            
+            <div id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-2 bg-gradient-to-l from-sky-800 via-black to-blue-900 text-gray-200 backdrop-blur-md text-gray-100 flex flex-col">
+                
+            </div>
+    
+            <div class="flex p-5 bg-blue-800/30 border-t border-blue-500 backdrop-blur-md">
+                <input type="text" id="user-input" placeholder="Ask about airport navigation, facilities, or tips..."
+                    class="flex-grow p-3 border border-blue-400 rounded-lg bg-blue-600/30 text-blue-100 backdrop-blur-md placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 hover:border-blue-300 transition-colors" />
+                <button id="mic-button"
+                    class="ml-3 px-5 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform relative">
+                    <i class="fas fa-microphone"></i>
+                    <span id="mic-visualizer" class="absolute inset-0 rounded-lg bg-blue-400/30 opacity-0 animate-pulse"></span>
+                </button>
+                <button id="send-button"
+                    class="ml-3 px-5 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    
+        <!-- Add properly structured Team Modal -->
+        <div id="team-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-gradient-to-br from-blue-900 to-sky-900 rounded-xl border border-blue-400 shadow-lg max-w-lg w-full mx-4 transform transition-transform duration-300 scale-95" id="modal-content">
+                <div class="p-6 border-b border-blue-500">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-white flex items-center">
+                            <i class="fas fa-users text-blue-300 mr-3"></i> Meet Our Team
+                        </h2>
+                        <button id="close-modal" class="text-blue-300 hover:text-white transition-colors focus:outline-none">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-6">
+                    <!-- Team Member 1 -->
+                    <div class="flex items-center space-x-4 p-4 rounded-lg bg-blue-800/40 border border-blue-600 hover:bg-blue-700/50 transition-colors">
+                        <div class="bg-blue-500 text-white h-12 w-12 rounded-full flex items-center justify-center text-xl font-bold">AK</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Ashutosh Kumar</h3>
+                            <p class="text-blue-200">Registration No: 12311842</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Team Member 2 -->
+                    <div class="flex items-center space-x-4 p-4 rounded-lg bg-blue-800/40 border border-blue-600 hover:bg-blue-700/50 transition-colors">
+                        <div class="bg-blue-500 text-white h-12 w-12 rounded-full flex items-center justify-center text-xl font-bold">AV</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Aman Verma</h3>
+                            <p class="text-blue-200">Registration No: 12307880</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Team Member 3 -->
+                    <div class="flex items-center space-x-4 p-4 rounded-lg bg-blue-800/40 border border-blue-600 hover:bg-blue-700/50 transition-colors">
+                        <div class="bg-blue-500 text-white h-12 w-12 rounded-full flex items-center justify-center text-xl font-bold">AR</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Aryan Raj</h3>
+                            <p class="text-blue-200">Registration No: 12311606</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-blue-500 text-center bg-blue-800/30">
+                    <p class="text-blue-200 text-sm">Airport ChatBot - Developed with ❤️ by LPU Students</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute inset-0 pointer-events-none" id="bubble-container">
+            <div class="bubble absolute bottom-0 left-1/4 w-4 h-4 bg-blue-400/20 rounded-full animate-[floatUp_8s_linear_infinite]"></div>
+            <div class="bubble absolute bottom-0 left-3/4 w-6 h-6 bg-blue-300/15 rounded-full animate-[floatUp_10s_linear_infinite_2s]"></div>
+            <div class="bubble absolute bottom-0 left-1/2 w-3 h-3 bg-white/10 rounded-full animate-[floatUp_12s_linear_infinite_1s]"></div>
+        </div>
+    
+        <script>
+        // Create Gemini constellation
+        function createGeminiConstellation() {
+            const constellation = document.getElementById("gemini-constellation");
+            // Create 20 stars with random positions
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement("div");
+                star.className = "star";
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                constellation.appendChild(star);
+            }
+
+            // Create main twin stars (Castor and Pollux)
+            const castor = document.createElement("div");
+            castor.className = "star";
+            castor.style.left = "30%";
+            castor.style.top = "20%";
+            castor.style.width = "6px";
+            castor.style.height = "6px";
+            castor.style.boxShadow = "0 0 10px 2px rgba(255, 255, 255, 0.8)";
+            constellation.appendChild(castor);
+
+            const pollux = document.createElement("div");
+            pollux.className = "star";
+            pollux.style.left = "35%";
+            pollux.style.top = "25%";
+            pollux.style.width = "6px";
+            pollux.style.height = "6px";
+            pollux.style.boxShadow = "0 0 10px 2px rgba(255, 255, 255, 0.8)";
+            constellation.appendChild(pollux);
+        }
+        
+        // Call the function to create the constellation
+        createGeminiConstellation();
+
+        document.addEventListener("mousemove", function (e) {
+            // Create fewer bubbles for performance
+            if (Math.random() > 0.9) {
+                let bubble = document.createElement("div");
+                bubble.className = "absolute w-4 h-4 bg-blue-300 opacity-30 rounded-full animate-[bubble_3s_linear]";
+                bubble.style.left = `${e.clientX}px`;
+                bubble.style.top = `${e.clientY}px`;
+
+                document.getElementById("bubble-container").appendChild(bubble);
+                setTimeout(() => bubble.remove(), 3000);
+            }
+        });
+        
+        // Airport selector functionality - updated
+        document.getElementById('airport-selector').addEventListener('change', function() {
+            if (this.value) {
+                const airportCode = this.value;
+                const airportName = this.options[this.selectedIndex].text.split(' - ')[1] || airportCode;
+                
+                document.getElementById('user-input').value = `Tell me about ${airportCode} airport (${airportName})`;
+                document.getElementById('send-button').click();
+                
+                // Add subtle airplane animation after selection
+                const flyingPlane = document.createElement('div');
+                flyingPlane.innerHTML = '<i class="fas fa-plane text-white text-4xl"></i>';
+                flyingPlane.className = 'absolute';
+                flyingPlane.style.top = '50%';
+                flyingPlane.style.left = '-5%';
+                flyingPlane.style.animation = 'fly 4s linear forwards';
+                document.body.appendChild(flyingPlane);
+                
+                // Remove the plane after animation completes
+                setTimeout(() => flyingPlane.remove(), 4000);
+                
+                // Reset selector with slight delay for better UX
+                setTimeout(() => this.selectedIndex = 0, 500);
+            }
+        });
+
+        // Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const meetTeamBtn = document.getElementById('meet-team-btn');
+            const teamModal = document.getElementById('team-modal');
+            const modalContent = document.getElementById('modal-content');
+            const closeModal = document.getElementById('close-modal');
+
+            // Open modal
+            meetTeamBtn.addEventListener('click', function() {
+                teamModal.classList.remove('hidden');
+                setTimeout(() => {
+                    teamModal.classList.add('opacity-100');
+                    modalContent.classList.add('scale-100');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            });
+
+            // Close modal function
+            function hideModal() {
+                teamModal.classList.remove('opacity-100');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                
+                setTimeout(() => {
+                    teamModal.classList.add('hidden');
+                }, 300);
+            }
+
+            // Close with X button
+            closeModal.addEventListener('click', hideModal);
+
+            // Close when clicking outside
+            teamModal.addEventListener('click', function(e) {
+                if (e.target === teamModal) {
+                    hideModal();
+                }
+            });
+
+            // Close with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !teamModal.classList.contains('hidden')) {
+                    hideModal();
+                }
+            });
+
+            // Add language toggle functionality
+            const languageToggle = document.getElementById('language-toggle-input');
+            const userInput = document.getElementById('user-input');
+            const speakerToggle = document.getElementById('speaker-toggle-input');
+            const speakingIndicator = document.getElementById('speaking-indicator');
+            
+            // Initialize with English placeholder
+            updatePlaceholderText(false);
+            
+            // Initialize speech synthesis
+            window.speechEnabled = false;
+            let currentlySpeaking = false;
+            const synth = window.speechSynthesis;
+            
+            // Handle speaker toggle
+            speakerToggle.addEventListener('change', function() {
+                window.speechEnabled = this.checked;
+                
+                // If turning on speech, show the introduction notice
+                if (window.speechEnabled) {
+                    showVoiceIntroNotice(true);
+                } else {
+                    // If turning off, hide notice and stop any speech
+                    showVoiceIntroNotice(false);
+                    if (typeof stopSpeaking === 'function') {
+                        stopSpeaking();
+                    } else if (window.speechSynthesis) {
+                        window.speechSynthesis.cancel();
+                    }
+                }
+                
+                // If turning off speech, stop any current speech
+                if (!window.speechEnabled && synth.speaking) {
+                    synth.cancel();
+                    currentlySpeaking = false;
+                    speakingIndicator.classList.add('hidden');
+                } else if (window.speechEnabled) {
+                    // If turning on speech, try to speak the welcome message if it's visible
+                    const botMessages = document.querySelectorAll('.bot-message .message-content');
+                    if (botMessages.length > 0) {
+                        const lastBotMessage = botMessages[botMessages.length - 1];
+                        if (lastBotMessage && lastBotMessage.textContent.includes('Welcome to Skybot')) {
+                            // Force a small delay to ensure speech synthesis is ready
+                            setTimeout(() => {
+                                if (typeof speakText === 'function') {
+                                    speakText(lastBotMessage.innerHTML);
+                                }
+                            }, 100);
+                        }
+                    }
+                }
+                
+                // Visual feedback for speaker state
+                const muteIcon = document.querySelector('.fa-volume-mute');
+                const volumeIcon = document.querySelector('.fa-volume-up');
+                
+                if (window.speechEnabled) {
+                    muteIcon.classList.add('text-gray-400');
+                    volumeIcon.classList.add('text-green-400');
+                } else {
+                    muteIcon.classList.remove('text-gray-400');
+                    volumeIcon.classList.remove('text-green-400');
+                }
+                
+                console.log("Speaker toggled:", window.speechEnabled ? "on" : "off");
+            });
+            
+            languageToggle.addEventListener('change', function() {
+                const isHindi = this.checked;
+                
+                // Update placeholder text based on language
+                updatePlaceholderText(isHindi);
+                
+                // Set language preference for API calls
+                window.isHindiMode = isHindi;
+                
+                // Add welcome message in the selected language
+                const welcomeMessage = isHindi 
+                    ? "## 👋 हवाई अड्डा सहायक में आपका स्वागत है!\n\nमैं आपको हवाई अड्डों पर मार्गदर्शन प्रदान कर सकता हूँ। मैं आपकी इन चीज़ों में मदद कर सकता हूँ:\n\n- टर्मिनल लेआउट और कनेक्शन\n- परिवहन विकल्प\n- खाने और खरीदारी की सिफारिशें\n- लाउंज की जानकारी\n- सुरक्षा संबंधित टिप्स\n\nआप किस हवाई अड्डे के बारे में जानना चाहते हैं?" 
+                    : "## 👋 Welcome to Skybot Airport Assistant!\n\nI can help you navigate airports worldwide. Some things I can assist with:\n\n- Terminal layouts and connections\n- Transportation options\n- Dining and shopping recommendations\n- Lounge information\n- Security tips\n\nWhich airport are you traveling through?";
+                
+                addMessage(welcomeMessage, false);
+                addSuggestionChips(isHindi);
+            });
+            
+            function updatePlaceholderText(isHindi) {
+                userInput.placeholder = isHindi 
+                    ? "हवाई अड्डे के बारे में पूछें, सुविधाओं या सलाह के लिए..."
+                    : "Ask about airport navigation, facilities, or tips...";
+            }
+        });
+
+        // Additional function to show voice introduction notice
+        function showVoiceIntroNotice(show) {
+            const notice = document.getElementById('voice-intro-notice');
+            if (notice) {
+                if (show) {
+                    notice.classList.remove('hidden');
+                    setTimeout(() => {
+                        notice.classList.add('hidden');
+                    }, 9000); // Hide after voice introductions complete
+                } else {
+                    notice.classList.add('hidden');
+                }
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
