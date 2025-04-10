@@ -298,6 +298,80 @@
                 width: 30px;
                 height: 30px;
             }
+            
+            /* Improved mobile adjustments */
+            .message-content {
+                font-size: 0.95rem;
+            }
+            
+            .message-content h1 {
+                font-size: 1.3rem;
+            }
+            
+            .message-content h2 {
+                font-size: 1.15rem;
+            }
+            
+            .message-content h3 {
+                font-size: 1rem;
+            }
+            
+            /* Better mobile input sizing */
+            #user-input {
+                padding: 10px;
+                font-size: 16px; /* Prevent iOS zoom on input focus */
+            }
+            
+            /* Mobile-friendly buttons */
+            #send-button, #mic-button {
+                padding: 10px;
+            }
+            
+            /* Fix for toggles on mobile */
+            .language-toggle, .speaker-toggle {
+                position: fixed;
+                z-index: 50;
+            }
+            
+            /* Position language toggle at top left on mobile */
+            .language-toggle {
+                top: 10px;
+                left: 10px;
+            }
+            
+            /* Position speaker toggle on mobile to avoid overlap */
+            .speaker-toggle {
+                top: 10px;
+                right: 10px;
+                left: auto;
+            }
+            
+            /* Smaller text for toggle labels on mobile */
+            .language-toggle-label, .speaker-toggle-label {
+                font-size: 0.8rem;
+            }
+            
+            /* Adjust header content for mobile */
+            .header-content {
+                flex-direction: column;
+                padding: 12px 0;
+            }
+            
+            /* Make airport selector more touch-friendly */
+            #airport-selector {
+                width: 100%;
+                height: 44px;
+                margin-bottom: 8px;
+                font-size: 16px;
+            }
+            
+            /* Make team button more touch-friendly */
+            #meet-team-btn {
+                width: 100%;
+                height: 44px;
+                margin-left: 0;
+                margin-top: 8px;
+            }
         }
 
         @keyframes float {
@@ -542,9 +616,75 @@
         animation-delay: 0.6s;
         height: 14px;
     }
+    
+    /* Mobile-specific layout adjustments */
+    @media (max-width: 640px) {
+        /* Make main container use full screen space */
+        .main-container {
+            height: 100vh;
+            max-width: 100%;
+            margin: 0;
+            border-radius: 0;
+        }
+        
+        /* Adjust header for better mobile display */
+        .header-section {
+            padding: 12px;
+        }
+        
+        /* Fix airport selection dropdown on mobile */
+        .airport-dropdown-container {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            margin-top: 50px; /* Add space for the toggles */
+        }
+        
+        /* Adjust toggles for mobile */
+        .controls-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background-color: rgba(30, 64, 175, 0.8);
+            z-index: 40;
+        }
+        
+        /* Show icons only in the toggle buttons on small screens */
+        @media (max-width: 480px) {
+            .toggle-label-text {
+                display: none;
+            }
+            
+            .language-toggle, .speaker-toggle {
+                padding: 6px;
+            }
+        }
+        
+        /* Fix modal size for mobile */
+        #modal-content {
+            width: 95%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        /* Hide some decorative elements on small screens to improve performance */
+        @media (max-width: 480px) {
+            .cloud, .shooting-star {
+                display: none;
+            }
+            
+            #gemini-constellation .star:nth-child(n+10) {
+                display: none;
+            }
+        }
+    }
     </style>
 </head>
-    <body class="relative flex justify-center items-center h-screen bg-gradient-to-br from-sky-900 via-black to-blue-900 text-gray-200 overflow-hidden">
+    <body class="relative flex justify-center items-center min-h-screen bg-gradient-to-br from-sky-900 via-black to-blue-900 text-gray-200 overflow-hidden">
 
        
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -585,7 +725,7 @@
         
         <div id="gemini-constellation" class="absolute inset-0 pointer-events-none z-0"></div>
     
-        <!-- Language Toggle Button -->
+        <!-- Language Toggle Button - Modified for mobile -->
         <div class="language-toggle">
             <span class="language-icon">🇬🇧</span>
             <label class="language-toggle-switch">
@@ -595,7 +735,7 @@
             <span class="language-icon">🇮🇳</span>
         </div>
 
-        <!-- Speaker Toggle Button -->
+        <!-- Speaker Toggle Button - Modified for mobile -->
         <div class="speaker-toggle">
             <i class="fas fa-volume-mute speaker-icon"></i>
             <label class="speaker-toggle-switch">
@@ -616,26 +756,27 @@
             </div>
         </div>
         
-        <div class=" w-full max-w-3xl h-[95vh] mt-[100px] mb-[100px] mr-5 ml-5 rounded-2xl backdrop-blur-md bg-white/10 border border-blue-300 shadow-lg relative z-10 flex flex-col overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300">
+        <!-- Move the main container higher by reducing top margin -->
+        <div class="main-container w-full max-w-3xl h-[95vh] mt-[40px] mb-[10px] mx-2 sm:mt-[60px] sm:mb-[20px] sm:mr-5 sm:ml-5 rounded-2xl sm:rounded-2xl backdrop-blur-md bg-white/10 border border-blue-300 shadow-lg relative z-10 flex flex-col overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300">
     
            
             <div class="absolute -inset-1 bg-blue-500/20 rounded-2xl blur-lg opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
     
            
-            <div class="bg-gradient-to-bl from-sky-800 via-black to-blue-900 text-white p-6 text-center font-bold shadow-md backdrop-blur-sm border-b border-white">
+            <div class="header-section bg-gradient-to-bl from-sky-800 via-black to-blue-900 text-white p-4 sm:p-6 text-center font-bold shadow-md backdrop-blur-sm border-b border-white">
                 <div class="flex justify-center items-center space-x-3">
                     <div class="text-amber-300 text-3xl animate-[pulse_4s_ease-in-out_infinite]">✦</div>
                     <div class="flex flex-col">
-                        <h1 class="text-2xl font-bold">Skybot Airport Assistant</h1>
+                        <h1 class="text-xl sm:text-2xl font-bold">Skybot Airport Assistant</h1>
                         <p class="text-xs text-blue-200 mt-1">Your twin-star guide to airports worldwide</p>
                     </div>
                     <div class="text-amber-300 text-3xl animate-[pulse_4s_ease-in-out_infinite_1s]">✦</div>
                 </div>
     
                 
-                <div class="flex justify-center mt-4">
-                    <div class="relative">
-                        <select id="airport-selector" class="appearance-none bg-blue-800/50 text-white border border-blue-500 rounded-lg px-5 py-2 pr-10 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm hover:bg-blue-700/50 transition-colors">
+                <div class="airport-dropdown-container flex flex-col sm:flex-row justify-center mt-4 space-y-2 sm:space-y-0 sm:space-x-4">
+                    <div class="relative w-full sm:w-auto">
+                        <select id="airport-selector" class="appearance-none bg-blue-800/50 text-white border border-blue-500 rounded-lg px-3 py-2 sm:px-5 sm:py-2 pr-10 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 backdrop-blur-sm hover:bg-blue-700/50 transition-colors w-full text-sm sm:text-base">
                             <option value="">✈️ Select your destination airport</option>
                             <optgroup label="🌎 International Airports">
                                 <option value="JFK">JFK - John F. Kennedy (New York)</option>
@@ -668,7 +809,7 @@
                     </div>
                     
                     <!-- Add Meet My Team button in parallel -->
-                    <button id="meet-team-btn" class="ml-4 px-4 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition backdrop-blur-sm hover:scale-105 transform transition-transform flex items-center space-x-2 border border-blue-400 shadow-md">
+                    <button id="meet-team-btn" class="w-full sm:w-auto px-4 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition backdrop-blur-sm hover:scale-105 transform transition-transform flex items-center justify-center space-x-2 border border-blue-400 shadow-md">
                         <i class="fas fa-users"></i>
                         <span>Meet My Team</span>
                     </button>
@@ -676,20 +817,20 @@
             </div>
     
             
-            <div id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-2 bg-gradient-to-l from-sky-800 via-black to-blue-900 text-gray-200 backdrop-blur-md text-gray-100 flex flex-col">
+            <div id="chat-messages" class="flex-grow p-4 sm:p-6 overflow-y-auto space-y-2 bg-gradient-to-l from-sky-800 via-black to-blue-900 text-gray-200 backdrop-blur-md text-gray-100 flex flex-col pb-8">
                 
             </div>
     
-            <div class="flex p-5 bg-blue-800/30 border-t border-blue-500 backdrop-blur-md">
+            <div class="input-section flex p-3 sm:p-5 bg-blue-800/30 border-t border-blue-500 backdrop-blur-md">
                 <input type="text" id="user-input" placeholder="Ask about airport navigation, facilities, or tips..."
                     class="flex-grow p-3 border border-blue-400 rounded-lg bg-blue-600/30 text-blue-100 backdrop-blur-md placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 hover:border-blue-300 transition-colors" />
                 <button id="mic-button"
-                    class="ml-3 px-5 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform relative">
+                    class="ml-2 sm:ml-3 p-3 sm:px-5 sm:py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform relative">
                     <i class="fas fa-microphone"></i>
                     <span id="mic-visualizer" class="absolute inset-0 rounded-lg bg-blue-400/30 opacity-0 animate-pulse"></span>
                 </button>
                 <button id="send-button"
-                    class="ml-3 px-5 py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform">
+                    class="ml-2 sm:ml-3 p-3 sm:px-5 sm:py-2 bg-blue-600/60 hover:bg-blue-500 text-white rounded-lg transition disabled:bg-blue-900 disabled:cursor-not-allowed backdrop-blur-sm hover:scale-105 transform transition-transform">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -698,17 +839,17 @@
         <!-- Add properly structured Team Modal -->
         <div id="team-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
             <div class="bg-gradient-to-br from-blue-900 to-sky-900 rounded-xl border border-blue-400 shadow-lg max-w-lg w-full mx-4 transform transition-transform duration-300 scale-95" id="modal-content">
-                <div class="p-6 border-b border-blue-500">
+                <div class="p-4 sm:p-6 border-b border-blue-500">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-bold text-white flex items-center">
+                        <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center">
                             <i class="fas fa-users text-blue-300 mr-3"></i> Meet Our Team
                         </h2>
-                        <button id="close-modal" class="text-blue-300 hover:text-white transition-colors focus:outline-none">
+                        <button id="close-modal" class="text-blue-300 hover:text-white transition-colors focus:outline-none p-2">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
                 </div>
-                <div class="p-6 space-y-6">
+                <div class="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[60vh] overflow-y-auto">
                     <!-- Team Member 1 -->
                     <div class="flex items-center space-x-4 p-4 rounded-lg bg-blue-800/40 border border-blue-600 hover:bg-blue-700/50 transition-colors">
                         <div class="bg-blue-500 text-white h-12 w-12 rounded-full flex items-center justify-center text-xl font-bold">AK</div>
@@ -736,7 +877,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-6 border-t border-blue-500 text-center bg-blue-800/30">
+                <div class="p-4 sm:p-6 border-t border-blue-500 text-center bg-blue-800/30">
                     <p class="text-blue-200 text-sm">Airport ChatBot - Developed with ❤️ by LPU Students</p>
                 </div>
             </div>
@@ -785,9 +926,10 @@
         // Call the function to create the constellation
         createGeminiConstellation();
 
+        // Reduce bubbles on mobile for better performance
         document.addEventListener("mousemove", function (e) {
-            // Create fewer bubbles for performance
-            if (Math.random() > 0.9) {
+            // Check if not on mobile before creating bubbles
+            if (window.innerWidth > 768 && Math.random() > 0.9) {
                 let bubble = document.createElement("div");
                 bubble.className = "absolute w-4 h-4 bg-blue-300 opacity-30 rounded-full animate-[bubble_3s_linear]";
                 bubble.style.left = `${e.clientX}px`;
@@ -975,6 +1117,36 @@
                 }
             }
         }
+        
+        // Check if device is in landscape mode on mobile and show a message
+        function checkOrientation() {
+            if (window.innerWidth < 768 && window.innerWidth > window.innerHeight) {
+                // If it doesn't exist yet, create orientation message
+                if (!document.getElementById('orientation-message')) {
+                    const message = document.createElement('div');
+                    message.id = 'orientation-message';
+                    message.className = 'fixed inset-0 bg-blue-900/90 backdrop-blur-lg z-[100] flex flex-col items-center justify-center text-white p-6 text-center';
+                    message.innerHTML = `
+                        <i class="fas fa-mobile-alt text-5xl mb-4 animate-pulse"></i>
+                        <h2 class="text-2xl font-bold mb-3">Please Rotate Your Device</h2>
+                        <p class="mb-4">For the best experience, please use your device in portrait mode.</p>
+                        <i class="fas fa-sync-alt text-3xl animate-spin"></i>
+                    `;
+                    document.body.appendChild(message);
+                }
+            } else {
+                // Remove the message if it exists and orientation is correct
+                const message = document.getElementById('orientation-message');
+                if (message) {
+                    message.remove();
+                }
+            }
+        }
+
+        // Check orientation on load and when resizing/rotating
+        window.addEventListener('load', checkOrientation);
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
     </script>
     <script src="script.js"></script>
 </body>
