@@ -143,7 +143,7 @@ async function generateResponse(prompt) {
         if (window.isHindiMode) {
             apiRequestBody.generationConfig = {
                 stopSequences: [],
-                temperature: 2.3,
+                temperature: 0.9,
                 maxOutputTokens: 2048,
             };
         }
